@@ -6,6 +6,10 @@ from unittest import TestCase
 from unittest_mixins import TempDirMixin
 
 import coverage_env_plugin
+try:
+    from coverage_config_reload_plugin import __version__ as config_reload_version
+except ImportError:
+    config_reload_version = '0.2.0'
 
 from coverage import __version__ as coverage_version
 from coverage.backward import StringIO
@@ -73,15 +77,16 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
         out_lines = [line.strip() for line in debug_out.getvalue().splitlines()]
         self.assertIn('plugins.file_tracers: -none-', out_lines)
 
-        expected_end = [
-            '-- sys: coverage_config_reload_plugin.ConfigReloadPlugin -----',
-            'configreload: True',
-            '-- end -------------------------------------------------------',
-        ]
-        self.assertEqual(expected_end, out_lines[-len(expected_end):])
+        if LooseVersion(config_reload_version) >= LooseVersion('0.3.0'):
+            expected_end = [
+                '-- sys: coverage_config_reload_plugin.ConfigReloadPlugin -----',
+                'configreload: True',
+                '-- end -------------------------------------------------------',
+            ]
+            self.assertEqual(expected_end, out_lines[-len(expected_end):])
 
-        if LooseVersion(coverage_version) >= LooseVersion('4.6'):
-            self.assertIn('plugins.configurers: coverage_config_reload_plugin.ConfigReloadPlugin', out_lines)
+            if LooseVersion(coverage_version) >= LooseVersion('4.6'):
+                self.assertIn('plugins.configurers: coverage_config_reload_plugin.ConfigReloadPlugin', out_lines)
 
     def test_os_name(self):
         self._reset_env()
@@ -111,7 +116,6 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
 
         os_name = coverage_env_plugin.DEFAULT_ENVIRONMENT['OS_NAME']
         os_name_pragma = 'pragma {}: no cover'.format(os_name)
-
 
         assert cov.config.get_option('report:exclude_lines') == [os_name_pragma]
         assert cov.config.exclude_list == [os_name_pragma]
