@@ -3,8 +3,8 @@ language: python
 
 env:
   global:
-    # reload 0.2.0 is broken after 4.4.2
-    - TOX_SKIP_ENV='.*-coverage(44[23456789]|4[56789].|[56789]..)-reload020'
+    # reload 0.2.0 is broken by 4.4.1
+    - TOX_SKIP_ENV='.*-coverage(44[^0]|4[56789].|[56789]..)-reload020'
 
 cache: pip
 python:
