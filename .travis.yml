@@ -1,6 +1,11 @@
 dist: xenial
 language: python
 
+env:
+  global:
+    # reload 0.2.0 is broken after 4.4.2
+    - TOX_SKIP_ENV='.*-coverage(44[12]|4[56789].|[56789]..)-reload020'
+
 cache: pip
 python:
   - '2.7'
