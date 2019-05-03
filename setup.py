@@ -21,7 +21,7 @@ Development Status :: 4 - Beta
 
 setup(
     name='coverage-env-plugin',
-    version='0.2dev0',
+    version='0.2',
     description='coverage.py environment plugin',
     author='John Vandenberg',
     author_email='jayvdb@gmail.com',
@@ -31,6 +31,8 @@ setup(
         'coverage >= 4.0',
         'packaging',
     ],
+    tests_require=['unittest-mixins'],
+    test_suite='tests',
     license='MIT License',
     classifiers=classifiers.splitlines(),
 )

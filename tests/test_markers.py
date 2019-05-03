@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from unittest_mixins import TempDirMixin
 
+import coverage_env_plugin
 
 from coverage import __version__ as coverage_version
 from coverage.backward import StringIO
@@ -12,52 +13,32 @@ from coverage.control import Coverage
 class ConfigMarkersPluginTest(TempDirMixin, TestCase):
     """Test plugin through the Coverage class."""
 
-    def test_plugin_init(self):
-        self.make_file('coveragerc_test_config', '')
-
-        debug_out = StringIO()
-        cov = Coverage(config_file='coveragerc_test_config', debug=['sys'])
-        cov._debug_file = debug_out
+    def test_init(self):
+        coverage_env_plugin.DEFAULT_ENVIRONMENT = {}
+        cov = Coverage()
         cov.set_option('run:plugins', ['coverage_env_plugin'])
         cov.start()
         cov.stop()
 
-        out_lines = [line.strip() for line in debug_out.getvalue().splitlines()]
-        self.assertIn('plugins.file_tracers: -none-', out_lines)
+        assert 'OS_NAME' in coverage_env_plugin.DEFAULT_ENVIRONMENT
 
-        expected_end = [
-            '-- sys: coverage_config_reload_plugin.ConfigReloadPlugin -----',
-            '-- sys: coverage_env_plugin.ConfigReloadPlugin -----',
-            'config reloader: True',
-            '-- end -------------------------------------------------------',
-        ]
-        self.assertEqual(expected_end, out_lines[-len(expected_end):])
-
-        #if LooseVersion(coverage_version) >= LooseVersion('4.5'):
-        #    self.assertIn('plugins.configurers: coverage_config_reload_plugin.ConfigReloadPlugin', out_lines)
-
-    def test_reload_config(self):
-        self.make_file('coveragerc_test_config', """\
-            [coverage:report]
-            ignore_errors = true
+    def test_os_name(self):
+        self.make_file('.coveragerc', """\
             [report]
-            ignore_errors = true
+            exclude_lines =
+              pragma ${OS_NAME}: no cover
             """)
 
         debug_out = StringIO()
-        cov = Coverage(config_file='coveragerc_test_config', debug=['sys'])
-        assert cov.config.get_option('report:ignore_errors') is True
-        cov._debug_file = debug_out
+        cov = Coverage()
+        assert cov.config.get_option('report:exclude_lines') == ['pragma : no cover']
 
-        self.make_file('coveragerc_test_config', """\
-            [coverage:report]
-            ignore_errors = off
-            [report]
-            ignore_errors = off
-            """)
-
-        cov.set_option('run:plugins', ['coverage_config_reload_plugin'])
+        cov.set_option('run:plugins', ['coverage_env_plugin', 'coverage_config_reload_plugin'])
         cov.start()
         cov.stop()
 
-        assert cov.config.get_option('report:ignore_errors') is False
+        assert 'OS_NAME' in coverage_env_plugin.DEFAULT_ENVIRONMENT
+
+        os_name = coverage_env_plugin.DEFAULT_ENVIRONMENT['OS_NAME']
+
+        assert cov.config.get_option('report:exclude_lines') == ['pragma {}: no cover'.format(os_name)]
