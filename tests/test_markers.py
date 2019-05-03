@@ -101,7 +101,6 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
               pragma ${OS_NAME}: no cover
             """)
 
-        debug_out = StringIO()
         cov = Coverage(config_file='.coveragerc')
 
         assert cov.config.get_option('report:exclude_lines') == ['pragma : no cover']
@@ -120,7 +119,7 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
         assert cov.config.get_option('report:exclude_lines') == [os_name_pragma]
         assert cov.config.exclude_list == [os_name_pragma]
 
-    def __test_os_name_without_reload(self):
+    def test_os_name_without_reload(self):
         self._reset_env()
 
         self.make_file('.coveragerc', """\
@@ -133,7 +132,6 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
               pragma ${OS_NAME}: no cover
             """)
 
-        debug_out = StringIO()
         cov = Coverage(config_file='.coveragerc')
 
         assert cov.config.get_option('report:exclude_lines') == ['pragma : no cover']
@@ -148,7 +146,6 @@ class ConfigMarkersPluginTest(TempDirMixin, TestCase):
 
         os_name = coverage_env_plugin.DEFAULT_ENVIRONMENT['OS_NAME']
         os_name_pragma = 'pragma {}: no cover'.format(os_name)
-
 
         assert cov.config.get_option('report:exclude_lines') == [os_name_pragma]
         assert cov.config.exclude_list == [os_name_pragma]
